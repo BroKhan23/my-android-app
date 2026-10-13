@@ -127,4 +127,3 @@ jobs:
         with:
           name: calculator-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          
