@@ -1,352 +1,377 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Stylist Calculator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * {
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    body {
-      background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #09090b 100%);
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: hidden;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .btn-glass {
-      background: rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.15s ease-out;
-    }
-    .btn-glass:active {
-      transform: scale(0.94);
-      background: rgba(255, 255, 255, 0.18);
-    }
-    .btn-op {
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.35));
-      border: 1px solid rgba(236, 72, 153, 0.3);
-    }
-    .btn-op:active {
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(236, 72, 153, 0.6));
-    }
-    .btn-equals {
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-      box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
-    }
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  </style>
-</head>
-<body class="w-screen h-screen flex flex-col text-white font-sans">
-
-  <!-- Top App Bar (Real App Header) -->
-  <header class="w-full pt-safe px-5 py-4 flex items-center justify-between z-20">
-    <div class="flex items-center gap-2">
-      <div class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-pulse"></div>
-      <span class="text-xs font-semibold tracking-widest uppercase text-pink-400">Pro Calc</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <button id="sciToggleBtn" onclick="toggleSci()" class="px-3 py-1.5 rounded-full text-xs font-medium glass-card text-purple-300 flex items-center gap-1.5 active:scale-95 transition">
-        <i class="fa-solid fa-square-root-variable text-[11px]"></i>
-        <span>Sci</span>
-      </button>
-      <button onclick="toggleHistory()" class="w-8 h-8 rounded-full glass-card flex items-center justify-center text-zinc-300 active:scale-95 transition">
-        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- Display Section -->
-  <main class="flex-1 w-full px-6 flex flex-col justify-end pb-3 overflow-hidden">
-    <!-- Secondary Input / History -->
-    <div id="prevExpr" class="w-full text-right text-zinc-400 text-sm font-mono tracking-wider h-6 overflow-x-auto whitespace-nowrap hide-scrollbar"></div>
-    
-    <!-- Main Result Screen -->
-    <div class="w-full flex items-baseline justify-end gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar py-1">
-      <span id="display" class="text-5xl font-light tracking-tight text-white select-all">0</span>
-    </div>
-  </main>
-
-  <!-- Keypad Section -->
-  <footer class="w-full px-4 pb-6 pt-2 flex flex-col gap-2.5 z-10">
-    
-    <!-- Expandable Scientific Pad -->
-    <div id="sciPad" class="grid grid-cols-4 gap-2 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out">
-      <button onclick="pressSci('sin')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">sin</button>
-      <button onclick="pressSci('cos')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">cos</button>
-      <button onclick="pressSci('tan')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">tan</button>
-      <button onclick="pressSci('sqrt')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">√</button>
-      <button onclick="pressSci('ln')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">ln</button>
-      <button onclick="pressSci('log')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">log</button>
-      <button onclick="pressSci('pi')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">π</button>
-      <button onclick="pressSci('pow')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">xʸ</button>
-    </div>
-
-    <!-- Standard Keypad -->
-    <div class="grid grid-cols-4 gap-2.5">
-      <!-- Row 1 -->
-      <button onclick="clearAll()" class="btn-glass py-4 rounded-2xl text-rose-400 font-bold text-lg active:scale-95">AC</button>
-      <button onclick="deleteDigit()" class="btn-glass py-4 rounded-2xl text-amber-400 font-medium text-lg active:scale-95">
-        <i class="fa-solid fa-delete-left"></i>
-      </button>
-      <button onclick="pressOp('%')" class="btn-glass py-4 rounded-2xl text-purple-300 font-semibold text-lg active:scale-95">%</button>
-      <button onclick="pressOp('÷')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">÷</button>
-
-      <!-- Row 2 -->
-      <button onclick="pressNum('7')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">7</button>
-      <button onclick="pressNum('8')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">8</button>
-      <button onclick="pressNum('9')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">9</button>
-      <button onclick="pressOp('×')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">×</button>
-
-      <!-- Row 3 -->
-      <button onclick="pressNum('4')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">4</button>
-      <button onclick="pressNum('5')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">5</button>
-      <button onclick="pressNum('6')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">6</button>
-      <button onclick="pressOp('-')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">−</button>
-
-      <!-- Row 4 -->
-      <button onclick="pressNum('1')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">1</button>
-      <button onclick="pressNum('2')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">2</button>
-      <button onclick="pressNum('3')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">3</button>
-      <button onclick="pressOp('+')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">+</button>
-
-      <!-- Row 5 -->
-      <button onclick="pressNum('00')" class="btn-glass py-4 rounded-2xl text-base font-medium active:scale-95">00</button>
-      <button onclick="pressNum('0')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">0</button>
-      <button onclick="pressDot()" class="btn-glass py-4 rounded-2xl text-xl font-bold active:scale-95">.</button>
-      <button onclick="calculate()" class="btn-equals py-4 rounded-2xl text-white font-bold text-2xl active:scale-95">=</button>
-    </div>
-  </footer>
-
-  <!-- History Drawer -->
-  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-full sm:w-80 bg-zinc-950/95 backdrop-blur-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col p-5 border-l border-white/10">
-    <div class="flex items-center justify-between pb-4 border-b border-white/10">
-      <h3 class="text-sm font-semibold tracking-wider uppercase text-pink-400">Calculation History</h3>
-      <div class="flex items-center gap-3">
-        <button onclick="clearHistoryList()" class="text-xs text-rose-400 hover:text-rose-300 transition">Clear</button>
-        <button onclick="toggleHistory()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-zinc-300">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-    </div>
-    <div id="historyItems" class="flex-1 overflow-y-auto py-3 flex flex-col gap-2.5 hide-scrollbar">
-      <div class="text-xs text-zinc-500 text-center mt-10">No history yet</div>
-    </div>
-  </div>
-
-  <script>
-    let currentInput = "0";
-    let expression = "";
-    let isEvaluated = false;
-    let historyData = [];
-
-    const display = document.getElementById("display");
-    const prevExpr = document.getElementById("prevExpr");
-    const sciPad = document.getElementById("sciPad");
-    const historyDrawer = document.getElementById("historyDrawer");
-    const historyItems = document.getElementById("historyItems");
-
-    function playAudioTone() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(420, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.05);
-      } catch (e) {}
-    }
-
-    function triggerHaptic() {
-      playAudioTone();
-      if ("vibrate" in navigator) {
-        navigator.vibrate(10);
-      }
-    }
-
-    function updateDisplay() {
-      display.innerText = currentInput;
-      prevExpr.innerText = expression;
-    }
-
-    function pressNum(num) {
-      triggerHaptic();
-      if (isEvaluated) {
-        currentInput = num;
-        expression = "";
-        isEvaluated = false;
-      } else {
-        if (currentInput === "0" && num !== "00") {
-          currentInput = num;
-        } else if (currentInput !== "0") {
-          currentInput += num;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Cosmic Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
         }
-      }
-      updateDisplay();
-    }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #020208;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* UI Overlay */
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .score-box {
+            background: rgba(18, 18, 30, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 16px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        .score-box span {
+            color: #00ffcc;
+        }
+        /* Touch Screen Controls */
+        #touch-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            pointer-events: auto;
+        }
+        .touch-zone {
+            flex: 1;
+            height: 100%;
+        }
+        /* Game Over Modal */
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 4, 12, 0.85);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #game-over-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .game-title {
+            color: #ff3366;
+            font-size: 38px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 51, 102, 0.6);
+        }
+        .final-score {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 28px;
+        }
+        .restart-btn {
+            background: linear-gradient(135deg, #00ffcc, #0099ff);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            padding: 14px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.5);
+            transition: transform 0.1s ease;
+        }
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+    <!-- Three.js 3D Library CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
 
-    function pressDot() {
-      triggerHaptic();
-      if (isEvaluated) {
-        currentInput = "0.";
-        expression = "";
-        isEvaluated = false;
-      } else if (!currentInput.includes(".")) {
-        currentInput += ".";
-      }
-      updateDisplay();
-    }
+    <div id="canvas-container"></div>
 
-    function pressOp(op) {
-      triggerHaptic();
-      if (isEvaluated) {
-        expression = currentInput + " " + op + " ";
-        currentInput = "0";
-        isEvaluated = false;
-      } else {
-        expression += currentInput + " " + op + " ";
-        currentInput = "0";
-      }
-      updateDisplay();
-    }
+    <!-- Mobile Touch Area -->
+    <div id="touch-controls">
+        <div class="touch-zone" id="left-zone"></div>
+        <div class="touch-zone" id="right-zone"></div>
+    </div>
 
-    function clearAll() {
-      triggerHaptic();
-      currentInput = "0";
-      expression = "";
-      isEvaluated = false;
-      updateDisplay();
-    }
-
-    function deleteDigit() {
-      triggerHaptic();
-      if (isEvaluated) {
-        clearAll();
-        return;
-      }
-      if (currentInput.length > 1) {
-        currentInput = currentInput.slice(0, -1);
-      } else {
-        currentInput = "0";
-      }
-      updateDisplay();
-    }
-
-    function calculate() {
-      triggerHaptic();
-      if (!expression && !isEvaluated) return;
-      
-      const fullExpr = expression + currentInput;
-      let sanitized = fullExpr.replace(/×/g, "*").replace(/÷/g, "/");
-
-      try {
-        let result = Function(`'use strict'; return (${sanitized})`)();
-        if (!isFinite(result)) throw new Error("Math Error");
-        
-        result = parseFloat(result.toFixed(8));
-        addHistory(fullExpr, result);
-        currentInput = result.toString();
-        expression = "";
-        isEvaluated = true;
-      } catch (err) {
-        currentInput = "Error";
-        expression = "";
-        isEvaluated = true;
-      }
-      updateDisplay();
-    }
-
-    function pressSci(type) {
-      triggerHaptic();
-      let val = parseFloat(currentInput);
-      if (isNaN(val)) return;
-
-      let res = 0;
-      switch (type) {
-        case "sin": res = Math.sin((val * Math.PI) / 180); break;
-        case "cos": res = Math.cos((val * Math.PI) / 180); break;
-        case "tan": res = Math.tan((val * Math.PI) / 180); break;
-        case "sqrt": res = Math.sqrt(val); break;
-        case "ln": res = Math.log(val); break;
-        case "log": res = Math.log10(val); break;
-        case "pi": res = Math.PI; break;
-        case "pow": 
-          expression = currentInput + " ** ";
-          currentInput = "0";
-          updateDisplay();
-          return;
-      }
-      currentInput = parseFloat(res.toFixed(8)).toString();
-      isEvaluated = true;
-      updateDisplay();
-    }
-
-    function toggleSci() {
-      triggerHaptic();
-      if (sciPad.classList.contains("max-h-0")) {
-        sciPad.classList.remove("max-h-0", "opacity-0");
-        sciPad.classList.add("max-h-40", "opacity-100");
-      } else {
-        sciPad.classList.remove("max-h-40", "opacity-100");
-        sciPad.classList.add("max-h-0", "opacity-0");
-      }
-    }
-
-    function toggleHistory() {
-      triggerHaptic();
-      historyDrawer.classList.toggle("translate-x-full");
-    }
-
-    function addHistory(eq, res) {
-      historyData.unshift({ eq, res });
-      renderHistory();
-    }
-
-    function clearHistoryList() {
-      triggerHaptic();
-      historyData = [];
-      renderHistory();
-    }
-
-    function renderHistory() {
-      if (historyData.length === 0) {
-        historyItems.innerHTML = '<div class="text-xs text-zinc-500 text-center mt-10">No history yet</div>';
-        return;
-      }
-      historyItems.innerHTML = historyData.map(item => `
-        <div class="p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer active:scale-95 transition" onclick="useHistoryVal('${item.res}')">
-          <div class="text-xs text-zinc-400 font-mono text-right">${item.eq} =</div>
-          <div class="text-lg font-semibold text-pink-400 text-right">${item.res}</div>
+    <!-- UI Layer -->
+    <div id="ui">
+        <div class="hud">
+            <div class="score-box">SCORE: <span id="score-text">0</span></div>
+            <div class="score-box">SPEED: <span id="speed-text">1.0x</span></div>
         </div>
-      `).join("");
-    }
+        <div class="instructions" id="hint">স্ক্রিনের ডানে ও বাঁয়ে ট্যাপ বা চেপে ধরে জাহাজ চালান</div>
+    </div>
 
-    function useHistoryVal(val) {
-      currentInput = val.toString();
-      isEvaluated = true;
-      updateDisplay();
-      toggleHistory();
-    }
-  </script>
+    <!-- Game Over Screen -->
+    <div id="game-over-screen">
+        <div class="game-title">CRASHED!</div>
+        <div class="final-score">Your Score: <span id="final-score-val" style="color: #00ffcc; font-weight: bold;">0</span></div>
+        <button class="restart-btn" id="restart-btn">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        // --- 3D Scene Initialization ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020208, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 7);
+        camera.lookAt(0, 0, -5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // --- Lights ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0x00ffff, 1.2);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // --- Space Tunnel / Grid Floor ---
+        const gridHelper = new THREE.GridHelper(300, 60, 0x00ffcc, 0x1f1f3a);
+        gridHelper.position.set(0, -1, -50);
+        scene.add(gridHelper);
+
+        // --- Starfield Background ---
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 800;
+        const starPositions = new Float32Array(starCount * 3);
+        for(let i = 0; i < starCount * 3; i += 3) {
+            starPositions[i] = (Math.random() - 0.5) * 200;
+            starPositions[i+1] = (Math.random() - 0.5) * 100 + 10;
+            starPositions[i+2] = (Math.random() - 0.5) * 300 - 50;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, transparent: true, opacity: 0.8 });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+
+        // --- 3D Player Spaceship ---
+        const playerGroup = new THREE.Group();
+
+        // Hull
+        const bodyGeo = new THREE.ConeGeometry(0.7, 2.2, 5);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00d2ff, roughness: 0.3, metalness: 0.8 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.rotation.x = Math.PI / 2;
+        playerGroup.add(body);
+
+        // Wings
+        const wingGeo = new THREE.BoxGeometry(2.4, 0.08, 0.8);
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xff007f, roughness: 0.4 });
+        const wings = new THREE.Mesh(wingGeo, wingMat);
+        wings.position.set(0, 0, 0.4);
+        playerGroup.add(wings);
+
+        // Engine Glow
+        const engineGeo = new THREE.SphereGeometry(0.25, 12, 12);
+        const engineMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const engine = new THREE.Mesh(engineGeo, engineMat);
+        engine.position.set(0, 0, 1.1);
+        playerGroup.add(engine);
+
+        playerGroup.position.set(0, 0, 0);
+        scene.add(playerGroup);
+
+        // --- Game State Variables ---
+        let isGameOver = false;
+        let score = 0;
+        let speed = 0.6;
+        let targetX = 0;
+        const maxX = 5.5;
+
+        // Obstacles Array
+        const obstacles = [];
+        const obstacleGeo = new THREE.DodecahedronGeometry(0.9, 0);
+        const obstacleMat = new THREE.MeshStandardMaterial({ color: 0xff3355, roughness: 0.5, metalness: 0.3 });
+
+        function spawnObstacle(zPos) {
+            const obs = new THREE.Mesh(obstacleGeo, obstacleMat);
+            obs.position.x = (Math.random() - 0.5) * (maxX * 2);
+            obs.position.y = 0;
+            obs.position.z = zPos;
+            obs.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            scene.add(obs);
+            obstacles.push(obs);
+        }
+
+        // Pre-populate obstacles ahead
+        for (let i = 0; i < 15; i++) {
+            spawnObstacle(-25 - (i * 20));
+        }
+
+        // --- Controls Handling (Touch & Keyboard) ---
+        let moveLeft = false;
+        let moveRight = false;
+
+        const leftZone = document.getElementById('left-zone');
+        const rightZone = document.getElementById('right-zone');
+
+        leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft = true; });
+        leftZone.addEventListener('touchend', (e) => { e.preventDefault(); moveLeft = false; });
+        rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); moveRight = true; });
+        rightZone.addEventListener('touchend', (e) => { e.preventDefault(); moveRight = false; });
+
+        // Keyboard support for testing
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') moveLeft = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') moveRight = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') moveLeft = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') moveRight = false;
+        });
+
+        // Resize Event
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // UI Elements
+        const scoreText = document.getElementById('score-text');
+        const speedText = document.getElementById('speed-text');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreVal = document.getElementById('final-score-val');
+        const restartBtn = document.getElementById('restart-btn');
+
+        restartBtn.addEventListener('click', resetGame);
+
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            speed = 0.6;
+            targetX = 0;
+            playerGroup.position.x = 0;
+            playerGroup.rotation.z = 0;
+
+            obstacles.forEach(obs => scene.remove(obs));
+            obstacles.length = 0;
+
+            for (let i = 0; i < 15; i++) {
+                spawnObstacle(-25 - (i * 20));
+            }
+
+            gameOverScreen.classList.remove('active');
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            finalScoreVal.innerText = Math.floor(score);
+            gameOverScreen.classList.add('active');
+        }
+
+        // --- Game Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isGameOver) {
+                // Movement Logic
+                if (moveLeft) targetX -= 0.22;
+                if (moveRight) targetX += 0.22;
+                targetX = Math.max(-maxX, Math.min(maxX, targetX));
+
+                // Smooth Ship Lerp
+                playerGroup.position.x += (targetX - playerGroup.position.x) * 0.15;
+                playerGroup.rotation.z = -(targetX - playerGroup.position.x) * 1.5;
+
+                // Move grid floor
+                gridHelper.position.z += speed;
+                if (gridHelper.position.z > 0) gridHelper.position.z = -50;
+
+                // Move Obstacles
+                for (let i = 0; i < obstacles.length; i++) {
+                    const obs = obstacles[i];
+                    obs.position.z += speed;
+                    obs.rotation.x += 0.02;
+                    obs.rotation.y += 0.03;
+
+                    // Collision Detection (Sphere Distance)
+                    const dist = playerGroup.position.distanceTo(obs.position);
+                    if (dist < 1.3) {
+                        triggerGameOver();
+                    }
+
+                    // Recycle Obstacle when passed
+                    if (obs.position.z > 10) {
+                        obs.position.z = -280;
+                        obs.position.x = (Math.random() - 0.5) * (maxX * 2);
+                    }
+                }
+
+                // Increase Score and Speed
+                score += speed * 0.4;
+                speed = Math.min(1.4, 0.6 + score * 0.001);
+
+                scoreText.innerText = Math.floor(score);
+                speedText.innerText = speed.toFixed(1) + 'x';
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
 </body>
 </html>
