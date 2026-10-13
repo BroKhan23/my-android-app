@@ -1,843 +1,352 @@
-```html
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luxe Calc - Stylish Calculator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            font-family: 'Outfit', sans-serif;
-        }
-        .font-mono-math {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 9999px;
-        }
-        /* Glassmorphism surfaces */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-btn:active {
-            transform: scale(0.92);
-            background: rgba(255, 255, 255, 0.18);
-        }
-        /* Animated ambient glow */
-        @keyframes floatGlow {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(30px, -40px) scale(1.15); }
-        }
-        .animate-glow-1 {
-            animation: floatGlow 14s ease-in-out infinite alternate;
-        }
-        .animate-glow-2 {
-            animation: floatGlow 18s ease-in-out infinite alternate-reverse;
-        }
-        /* Keypad press ripple */
-        .btn-ripple {
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-ripple::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 10.01%);
-            background-repeat: no-repeat;
-            background-position: 50%;
-            transform: scale(10, 10);
-            opacity: 0;
-            transition: transform .3s, opacity .5s;
-        }
-        .btn-ripple:active::after {
-            transform: scale(0, 0);
-            opacity: .4;
-            transition: 0s;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Stylist Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #09090b 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.15s ease-out;
+    }
+    .btn-glass:active {
+      transform: scale(0.94);
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .btn-op {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.35));
+      border: 1px solid rgba(236, 72, 153, 0.3);
+    }
+    .btn-op:active {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(236, 72, 153, 0.6));
+    }
+    .btn-equals {
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
+<body class="w-screen h-screen flex flex-col text-white font-sans">
 
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-x-hidden relative selection:bg-purple-500 selection:text-white">
-    <!-- Ambient Dynamic Gradients -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div id="glowCircle1" class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-purple-600/25 blur-3xl animate-glow-1"></div>
-        <div id="glowCircle2" class="absolute -bottom-28 -right-24 w-96 h-96 rounded-full bg-cyan-600/25 blur-3xl animate-glow-2"></div>
-        <div id="glowCircle3" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-pink-600/15 blur-3xl"></div>
+  <!-- Top App Bar (Real App Header) -->
+  <header class="w-full pt-safe px-5 py-4 flex items-center justify-between z-20">
+    <div class="flex items-center gap-2">
+      <div class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-pulse"></div>
+      <span class="text-xs font-semibold tracking-widest uppercase text-pink-400">Pro Calc</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="sciToggleBtn" onclick="toggleSci()" class="px-3 py-1.5 rounded-full text-xs font-medium glass-card text-purple-300 flex items-center gap-1.5 active:scale-95 transition">
+        <i class="fa-solid fa-square-root-variable text-[11px]"></i>
+        <span>Sci</span>
+      </button>
+      <button onclick="toggleHistory()" class="w-8 h-8 rounded-full glass-card flex items-center justify-center text-zinc-300 active:scale-95 transition">
+        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Display Section -->
+  <main class="flex-1 w-full px-6 flex flex-col justify-end pb-3 overflow-hidden">
+    <!-- Secondary Input / History -->
+    <div id="prevExpr" class="w-full text-right text-zinc-400 text-sm font-mono tracking-wider h-6 overflow-x-auto whitespace-nowrap hide-scrollbar"></div>
+    
+    <!-- Main Result Screen -->
+    <div class="w-full flex items-baseline justify-end gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar py-1">
+      <span id="display" class="text-5xl font-light tracking-tight text-white select-all">0</span>
+    </div>
+  </main>
+
+  <!-- Keypad Section -->
+  <footer class="w-full px-4 pb-6 pt-2 flex flex-col gap-2.5 z-10">
+    
+    <!-- Expandable Scientific Pad -->
+    <div id="sciPad" class="grid grid-cols-4 gap-2 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out">
+      <button onclick="pressSci('sin')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">sin</button>
+      <button onclick="pressSci('cos')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">cos</button>
+      <button onclick="pressSci('tan')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">tan</button>
+      <button onclick="pressSci('sqrt')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">√</button>
+      <button onclick="pressSci('ln')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">ln</button>
+      <button onclick="pressSci('log')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">log</button>
+      <button onclick="pressSci('pi')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">π</button>
+      <button onclick="pressSci('pow')" class="btn-glass py-2.5 rounded-xl text-xs font-semibold text-purple-300">xʸ</button>
     </div>
 
-    <!-- Phone Frame / App Container -->
-    <div class="w-full max-w-[420px] h-[92vh] max-h-[880px] min-h-[660px] glass-panel rounded-[40px] shadow-2xl shadow-black/80 flex flex-col justify-between relative z-10 overflow-hidden border border-white/15">
+    <!-- Standard Keypad -->
+    <div class="grid grid-cols-4 gap-2.5">
+      <!-- Row 1 -->
+      <button onclick="clearAll()" class="btn-glass py-4 rounded-2xl text-rose-400 font-bold text-lg active:scale-95">AC</button>
+      <button onclick="deleteDigit()" class="btn-glass py-4 rounded-2xl text-amber-400 font-medium text-lg active:scale-95">
+        <i class="fa-solid fa-delete-left"></i>
+      </button>
+      <button onclick="pressOp('%')" class="btn-glass py-4 rounded-2xl text-purple-300 font-semibold text-lg active:scale-95">%</button>
+      <button onclick="pressOp('÷')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">÷</button>
+
+      <!-- Row 2 -->
+      <button onclick="pressNum('7')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">7</button>
+      <button onclick="pressNum('8')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">8</button>
+      <button onclick="pressNum('9')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">9</button>
+      <button onclick="pressOp('×')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">×</button>
+
+      <!-- Row 3 -->
+      <button onclick="pressNum('4')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">4</button>
+      <button onclick="pressNum('5')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">5</button>
+      <button onclick="pressNum('6')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">6</button>
+      <button onclick="pressOp('-')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">−</button>
+
+      <!-- Row 4 -->
+      <button onclick="pressNum('1')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">1</button>
+      <button onclick="pressNum('2')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">2</button>
+      <button onclick="pressNum('3')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">3</button>
+      <button onclick="pressOp('+')" class="btn-op py-4 rounded-2xl text-pink-300 font-bold text-xl active:scale-95">+</button>
+
+      <!-- Row 5 -->
+      <button onclick="pressNum('00')" class="btn-glass py-4 rounded-2xl text-base font-medium active:scale-95">00</button>
+      <button onclick="pressNum('0')" class="btn-glass py-4 rounded-2xl text-xl font-medium active:scale-95">0</button>
+      <button onclick="pressDot()" class="btn-glass py-4 rounded-2xl text-xl font-bold active:scale-95">.</button>
+      <button onclick="calculate()" class="btn-equals py-4 rounded-2xl text-white font-bold text-2xl active:scale-95">=</button>
+    </div>
+  </footer>
+
+  <!-- History Drawer -->
+  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-full sm:w-80 bg-zinc-950/95 backdrop-blur-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col p-5 border-l border-white/10">
+    <div class="flex items-center justify-between pb-4 border-b border-white/10">
+      <h3 class="text-sm font-semibold tracking-wider uppercase text-pink-400">Calculation History</h3>
+      <div class="flex items-center gap-3">
+        <button onclick="clearHistoryList()" class="text-xs text-rose-400 hover:text-rose-300 transition">Clear</button>
+        <button onclick="toggleHistory()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-zinc-300">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+    </div>
+    <div id="historyItems" class="flex-1 overflow-y-auto py-3 flex flex-col gap-2.5 hide-scrollbar">
+      <div class="text-xs text-zinc-500 text-center mt-10">No history yet</div>
+    </div>
+  </div>
+
+  <script>
+    let currentInput = "0";
+    let expression = "";
+    let isEvaluated = false;
+    let historyData = [];
+
+    const display = document.getElementById("display");
+    const prevExpr = document.getElementById("prevExpr");
+    const sciPad = document.getElementById("sciPad");
+    const historyDrawer = document.getElementById("historyDrawer");
+    const historyItems = document.getElementById("historyItems");
+
+    function playAudioTone() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(420, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    function triggerHaptic() {
+      playAudioTone();
+      if ("vibrate" in navigator) {
+        navigator.vibrate(10);
+      }
+    }
+
+    function updateDisplay() {
+      display.innerText = currentInput;
+      prevExpr.innerText = expression;
+    }
+
+    function pressNum(num) {
+      triggerHaptic();
+      if (isEvaluated) {
+        currentInput = num;
+        expression = "";
+        isEvaluated = false;
+      } else {
+        if (currentInput === "0" && num !== "00") {
+          currentInput = num;
+        } else if (currentInput !== "0") {
+          currentInput += num;
+        }
+      }
+      updateDisplay();
+    }
+
+    function pressDot() {
+      triggerHaptic();
+      if (isEvaluated) {
+        currentInput = "0.";
+        expression = "";
+        isEvaluated = false;
+      } else if (!currentInput.includes(".")) {
+        currentInput += ".";
+      }
+      updateDisplay();
+    }
+
+    function pressOp(op) {
+      triggerHaptic();
+      if (isEvaluated) {
+        expression = currentInput + " " + op + " ";
+        currentInput = "0";
+        isEvaluated = false;
+      } else {
+        expression += currentInput + " " + op + " ";
+        currentInput = "0";
+      }
+      updateDisplay();
+    }
+
+    function clearAll() {
+      triggerHaptic();
+      currentInput = "0";
+      expression = "";
+      isEvaluated = false;
+      updateDisplay();
+    }
+
+    function deleteDigit() {
+      triggerHaptic();
+      if (isEvaluated) {
+        clearAll();
+        return;
+      }
+      if (currentInput.length > 1) {
+        currentInput = currentInput.slice(0, -1);
+      } else {
+        currentInput = "0";
+      }
+      updateDisplay();
+    }
+
+    function calculate() {
+      triggerHaptic();
+      if (!expression && !isEvaluated) return;
+      
+      const fullExpr = expression + currentInput;
+      let sanitized = fullExpr.replace(/×/g, "*").replace(/÷/g, "/");
+
+      try {
+        let result = Function(`'use strict'; return (${sanitized})`)();
+        if (!isFinite(result)) throw new Error("Math Error");
         
-        <!-- Dynamic Real Phone Status Bar -->
-        <div class="px-7 pt-4 pb-1 flex justify-between items-center text-xs text-slate-400 font-medium tracking-wide">
-            <!-- User Device Real Time -->
-            <span id="statusBarTime" class="font-semibold text-slate-200 font-mono-math">12:00</span>
-            
-            <!-- Dynamic Island / Punch Hole Simulation -->
-            <div class="w-24 h-4 bg-black/40 rounded-full mx-auto flex items-center justify-center border border-white/5">
-                <div id="deviceStateDot" class="w-2 h-2 rounded-full bg-emerald-500/80 mr-1.5 animate-pulse"></div>
-                <div class="w-2 h-2 rounded-full bg-white/20"></div>
-            </div>
-            
-            <!-- Real Device Network & Battery Status -->
-            <div class="flex items-center space-x-2">
-                <i id="statusBarSignalIcon" class="fa-solid fa-signal text-[10px] text-slate-300"></i>
-                <i id="statusBarWifiIcon" class="fa-solid fa-wifi text-[10px] text-cyan-400 transition-colors"></i>
-                <!-- Real Battery Level -->
-                <span id="statusBarBatteryLevel" class="text-[11px] font-semibold text-slate-200 font-mono-math">--%</span>
-                <!-- Real Battery Icon / Charging Indicator -->
-                <i id="statusBarBatteryIcon" class="fa-solid fa-battery-half text-emerald-400 text-xs transition-colors"></i>
-            </div>
+        result = parseFloat(result.toFixed(8));
+        addHistory(fullExpr, result);
+        currentInput = result.toString();
+        expression = "";
+        isEvaluated = true;
+      } catch (err) {
+        currentInput = "Error";
+        expression = "";
+        isEvaluated = true;
+      }
+      updateDisplay();
+    }
+
+    function pressSci(type) {
+      triggerHaptic();
+      let val = parseFloat(currentInput);
+      if (isNaN(val)) return;
+
+      let res = 0;
+      switch (type) {
+        case "sin": res = Math.sin((val * Math.PI) / 180); break;
+        case "cos": res = Math.cos((val * Math.PI) / 180); break;
+        case "tan": res = Math.tan((val * Math.PI) / 180); break;
+        case "sqrt": res = Math.sqrt(val); break;
+        case "ln": res = Math.log(val); break;
+        case "log": res = Math.log10(val); break;
+        case "pi": res = Math.PI; break;
+        case "pow": 
+          expression = currentInput + " ** ";
+          currentInput = "0";
+          updateDisplay();
+          return;
+      }
+      currentInput = parseFloat(res.toFixed(8)).toString();
+      isEvaluated = true;
+      updateDisplay();
+    }
+
+    function toggleSci() {
+      triggerHaptic();
+      if (sciPad.classList.contains("max-h-0")) {
+        sciPad.classList.remove("max-h-0", "opacity-0");
+        sciPad.classList.add("max-h-40", "opacity-100");
+      } else {
+        sciPad.classList.remove("max-h-40", "opacity-100");
+        sciPad.classList.add("max-h-0", "opacity-0");
+      }
+    }
+
+    function toggleHistory() {
+      triggerHaptic();
+      historyDrawer.classList.toggle("translate-x-full");
+    }
+
+    function addHistory(eq, res) {
+      historyData.unshift({ eq, res });
+      renderHistory();
+    }
+
+    function clearHistoryList() {
+      triggerHaptic();
+      historyData = [];
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (historyData.length === 0) {
+        historyItems.innerHTML = '<div class="text-xs text-zinc-500 text-center mt-10">No history yet</div>';
+        return;
+      }
+      historyItems.innerHTML = historyData.map(item => `
+        <div class="p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer active:scale-95 transition" onclick="useHistoryVal('${item.res}')">
+          <div class="text-xs text-zinc-400 font-mono text-right">${item.eq} =</div>
+          <div class="text-lg font-semibold text-pink-400 text-right">${item.res}</div>
         </div>
-
-        <!-- Header Controls -->
-        <div class="px-5 py-2 flex items-center justify-between border-b border-white/5">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                    <i class="fa-solid fa-calculator text-white text-xs"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-sm tracking-wide bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent">Luxe Calc Pro</h1>
-                    <p class="text-[9px] text-slate-400 font-medium">Stylish Edition</p>
-                </div>
-            </div>
-
-            <!-- Header Action Buttons -->
-            <div class="flex items-center space-x-2">
-                <!-- Sound Toggle -->
-                <button id="soundToggleBtn" onclick="toggleAudio()" title="Sound" class="w-8 h-8 rounded-xl glass-btn flex items-center justify-center text-slate-300 hover:text-white transition">
-                    <i id="soundIcon" class="fa-solid fa-volume-high text-xs text-purple-400"></i>
-                </button>
-                <!-- Theme Palette Selector -->
-                <button onclick="cycleTheme()" title="Change Theme" class="w-8 h-8 rounded-xl glass-btn flex items-center justify-center text-slate-300 hover:text-white transition">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs text-cyan-400"></i>
-                </button>
-                <!-- History Drawer Toggle -->
-                <button onclick="toggleHistoryDrawer()" title="History" class="w-8 h-8 rounded-xl glass-btn flex items-center justify-center text-slate-300 hover:text-white transition relative">
-                    <i class="fa-solid fa-clock-rotate-left text-xs text-pink-400"></i>
-                    <span id="historyBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-pink-500 rounded-full animate-ping"></span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Display Screen Area -->
-        <div class="px-6 py-3 flex-1 flex flex-col justify-end text-right overflow-hidden relative">
-            <!-- Mode Badges -->
-            <div class="flex justify-between items-center mb-1">
-                <div class="flex items-center space-x-1.5">
-                    <span id="angleModeBadge" onclick="toggleAngleMode()" class="cursor-pointer text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-cyan-300 hover:bg-white/10 transition font-mono-math">DEG</span>
-                    <span id="memoryBadge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">M</span>
-                </div>
-                <button onclick="copyToClipboard()" class="text-[11px] text-slate-400 hover:text-slate-200 transition flex items-center space-x-1">
-                    <i class="fa-regular fa-copy"></i>
-                    <span class="text-[10px]">কপি</span>
-                </button>
-            </div>
-
-            <!-- Live Calculation Expression -->
-            <div id="expressionDisplay" class="font-mono-math text-slate-400 text-sm tracking-wider min-h-[22px] overflow-x-auto whitespace-nowrap scrollbar-none py-1 transition-all">
-                0
-            </div>
-
-            <!-- Grand Result Display with Adaptive Font Sizing -->
-            <div class="relative mt-1">
-                <input id="mainResultDisplay" type="text" readonly value="0" class="w-full bg-transparent text-right font-semibold font-mono-math tracking-tight text-white focus:outline-none select-all text-4xl sm:text-5xl transition-all duration-150 border-none pointer-events-none drop-shadow-md">
-            </div>
-        </div>
-
-        <!-- Scientific Functions Row / Toggle Bar -->
-        <div class="px-4 pb-2">
-            <div class="flex items-center justify-between glass-btn p-1.5 rounded-2xl">
-                <button onclick="toggleScientificPad()" id="sciToggleLabel" class="flex items-center space-x-1.5 text-xs text-slate-300 font-medium px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/15 transition">
-                    <i class="fa-solid fa-shapes text-purple-400 text-[11px]"></i>
-                    <span>Scientific</span>
-                    <i id="sciChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300"></i>
-                </button>
-                <div class="flex space-x-1">
-                    <button onclick="pressKey('(')" class="px-2.5 py-1 text-xs text-slate-300 rounded-lg hover:bg-white/10 transition font-mono-math">(</button>
-                    <button onclick="pressKey(')')" class="px-2.5 py-1 text-xs text-slate-300 rounded-lg hover:bg-white/10 transition font-mono-math">)</button>
-                    <button onclick="pressKey('Math.sqrt(')" class="px-2.5 py-1 text-xs text-purple-300 rounded-lg hover:bg-white/10 transition font-mono-math">√x</button>
-                    <button onclick="pressKey('**2')" class="px-2.5 py-1 text-xs text-cyan-300 rounded-lg hover:bg-white/10 transition font-mono-math">x²</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Expandable Scientific Panel -->
-        <div id="scientificGrid" class="hidden px-4 pb-2 transition-all duration-300 ease-in-out">
-            <div class="grid grid-cols-4 gap-2 text-xs font-mono-math">
-                <button onclick="pressFunc('sin')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white">sin</button>
-                <button onclick="pressFunc('cos')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white">cos</button>
-                <button onclick="pressFunc('tan')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white">tan</button>
-                <button onclick="pressFunc('log10')" class="glass-btn p-2 rounded-xl text-purple-300 hover:text-white">log</button>
-
-                <button onclick="pressFunc('asin')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white text-[11px]">sin⁻¹</button>
-                <button onclick="pressFunc('acos')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white text-[11px]">cos⁻¹</button>
-                <button onclick="pressFunc('atan')" class="glass-btn p-2 rounded-xl text-cyan-300 hover:text-white text-[11px]">tan⁻¹</button>
-                <button onclick="pressFunc('log')" class="glass-btn p-2 rounded-xl text-purple-300 hover:text-white">ln</button>
-
-                <button onclick="pressKey('Math.PI')" class="glass-btn p-2 rounded-xl text-pink-300 hover:text-white">π</button>
-                <button onclick="pressKey('Math.E')" class="glass-btn p-2 rounded-xl text-pink-300 hover:text-white">e</button>
-                <button onclick="pressKey('**')" class="glass-btn p-2 rounded-xl text-purple-300 hover:text-white">xʸ</button>
-                <button onclick="factorial()" class="glass-btn p-2 rounded-xl text-purple-300 hover:text-white">x!</button>
-            </div>
-        </div>
-
-        <!-- Main Keypad Grid -->
-        <div class="p-4 pt-1 pb-6 grid grid-cols-4 gap-2.5 sm:gap-3 text-lg font-medium">
-            <!-- Row 1: Clear, Negate, Modulo, Division -->
-            <button onclick="clearAll()" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center font-bold text-rose-400 hover:bg-rose-500/20 active:scale-95 transition shadow-sm border-rose-500/20">
-                AC
-            </button>
-            <button onclick="toggleSign()" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-slate-300 hover:bg-white/10 active:scale-95 transition">
-                <i class="fa-solid fa-plus-minus text-sm text-cyan-300"></i>
-            </button>
-            <button onclick="pressKey('%')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-slate-300 hover:bg-white/10 active:scale-95 transition font-mono-math">
-                %
-            </button>
-            <button onclick="pressOperator('/')" class="btn-ripple h-14 rounded-2xl flex items-center justify-center text-xl font-bold bg-purple-600/40 text-purple-200 border border-purple-500/40 hover:bg-purple-600/60 active:scale-95 transition shadow-lg shadow-purple-600/20">
-                ÷
-            </button>
-
-            <!-- Row 2: 7, 8, 9, Multiply -->
-            <button onclick="pressKey('7')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                7
-            </button>
-            <button onclick="pressKey('8')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                8
-            </button>
-            <button onclick="pressKey('9')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                9
-            </button>
-            <button onclick="pressOperator('*')" class="btn-ripple h-14 rounded-2xl flex items-center justify-center text-xl font-bold bg-purple-600/40 text-purple-200 border border-purple-500/40 hover:bg-purple-600/60 active:scale-95 transition shadow-lg shadow-purple-600/20">
-                ×
-            </button>
-
-            <!-- Row 3: 4, 5, 6, Subtract -->
-            <button onclick="pressKey('4')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                4
-            </button>
-            <button onclick="pressKey('5')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                5
-            </button>
-            <button onclick="pressKey('6')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                6
-            </button>
-            <button onclick="pressOperator('-')" class="btn-ripple h-14 rounded-2xl flex items-center justify-center text-xl font-bold bg-purple-600/40 text-purple-200 border border-purple-500/40 hover:bg-purple-600/60 active:scale-95 transition shadow-lg shadow-purple-600/20">
-                −
-            </button>
-
-            <!-- Row 4: 1, 2, 3, Add -->
-            <button onclick="pressKey('1')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                1
-            </button>
-            <button onclick="pressKey('2')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                2
-            </button>
-            <button onclick="pressKey('3')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                3
-            </button>
-            <button onclick="pressOperator('+')" class="btn-ripple h-14 rounded-2xl flex items-center justify-center text-xl font-bold bg-purple-600/40 text-purple-200 border border-purple-500/40 hover:bg-purple-600/60 active:scale-95 transition shadow-lg shadow-purple-600/20">
-                +
-            </button>
-
-            <!-- Row 5: 0, Dot, Backspace, Equal -->
-            <button onclick="pressKey('0')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-semibold">
-                0
-            </button>
-            <button onclick="pressKey('.')" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-2xl text-slate-100 hover:bg-white/10 active:scale-95 transition font-bold font-mono-math">
-                .
-            </button>
-            <button onclick="backspace()" class="btn-ripple glass-btn h-14 rounded-2xl flex items-center justify-center text-slate-300 hover:bg-white/10 active:scale-95 transition">
-                <i class="fa-solid fa-delete-left text-base text-rose-300"></i>
-            </button>
-            <button id="equalBtn" onclick="calculateResult()" class="btn-ripple h-14 rounded-2xl flex items-center justify-center text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl shadow-purple-500/30 hover:brightness-110 active:scale-95 transition">
-                =
-            </button>
-        </div>
-
-        <!-- Simulated Mobile Bottom Navigation Pill -->
-        <div class="pb-2 flex justify-center">
-            <div class="w-32 h-1 bg-white/20 rounded-full"></div>
-        </div>
-
-        <!-- History Overlay Drawer -->
-        <div id="historyDrawer" class="absolute inset-0 bg-slate-950/95 backdrop-blur-2xl z-30 transform translate-y-full transition-transform duration-300 ease-in-out flex flex-col p-6 rounded-[40px]">
-            <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-clock-rotate-left text-pink-400"></i>
-                    <h2 class="font-bold text-base text-slate-100">হিস্ট্রি ও হিসাব খাতা</h2>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <button onclick="clearHistoryList()" class="text-xs text-rose-400 hover:text-rose-300 flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20">
-                        <i class="fa-regular fa-trash-can"></i>
-                        <span>মুছুন</span>
-                    </button>
-                    <button onclick="toggleHistoryDrawer()" class="w-8 h-8 rounded-full glass-btn flex items-center justify-center text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- History List Body -->
-            <div id="historyListContainer" class="flex-1 overflow-y-auto py-4 space-y-3 pr-1">
-                <!-- Dynamically populated or empty state -->
-                <div id="emptyHistoryMsg" class="h-full flex flex-col items-center justify-center text-slate-500 text-sm space-y-2">
-                    <i class="fa-solid fa-calculator text-3xl opacity-30"></i>
-                    <p>এখনো কোন হিসাব সংরক্ষিত হয়নি</p>
-                </div>
-            </div>
-            
-            <p class="text-[11px] text-center text-slate-500 pt-2 border-t border-white/5">যেকোনো হিসেবে ট্যাপ করে পুনরায় ব্যবহার করুন</p>
-        </div>
-
-        <!-- Toast Notification Box -->
-        <div id="toastMessage" class="absolute top-16 left-1/2 -translate-x-1/2 bg-slate-900/90 text-slate-100 px-4 py-2 rounded-full border border-purple-500/30 shadow-xl text-xs flex items-center space-x-2 opacity-0 pointer-events-none transition-all duration-300 z-50">
-            <i class="fa-solid fa-circle-check text-emerald-400"></i>
-            <span id="toastText">কপি করা হয়েছে!</span>
-        </div>
-    </div>
-
-    <script>
-        /* State Variables */
-        let currentExpression = '';
-        let evaluatedResult = '0';
-        let isAngleDegree = true;
-        let isSoundEnabled = true;
-        let isSciPadOpen = false;
-        let calculationHistory = [];
-        let currentThemeIndex = 0;
-
-        /* Themes Preset Palette */
-        const themes = [
-            {
-                name: 'Cosmic Violet',
-                glow1: 'bg-purple-600/25',
-                glow2: 'bg-cyan-600/25',
-                btnEqual: 'bg-gradient-to-r from-purple-500 to-pink-500',
-                accentText: 'text-purple-400'
-            },
-            {
-                name: 'Emerald Neon',
-                glow1: 'bg-emerald-600/25',
-                glow2: 'bg-teal-600/25',
-                btnEqual: 'bg-gradient-to-r from-emerald-500 to-teal-400',
-                accentText: 'text-emerald-400'
-            },
-            {
-                name: 'Cyberpunk Gold',
-                glow1: 'bg-amber-600/25',
-                glow2: 'bg-orange-600/25',
-                btnEqual: 'bg-gradient-to-r from-amber-500 to-orange-500',
-                accentText: 'text-amber-400'
-            },
-            {
-                name: 'Midnight Azure',
-                glow1: 'bg-blue-600/25',
-                glow2: 'bg-indigo-600/25',
-                btnEqual: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-                accentText: 'text-blue-400'
-            }
-        ];
-
-        let audioCtx = null;
-        function playClickSound(freq = 600, type = 'sine') {
-            if (!isSoundEnabled) return;
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(freq * 0.5, audioCtx.currentTime + 0.05);
-
-                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.06);
-            } catch (e) {
-                // Audio fallback silence
-            }
-        }
-
-        function toggleAudio() {
-            isSoundEnabled = !isSoundEnabled;
-            const icon = document.getElementById('soundIcon');
-            if (isSoundEnabled) {
-                icon.className = 'fa-solid fa-volume-high text-xs text-purple-400';
-                showToast('সাউন্ড চালু হয়েছে');
-                playClickSound(800);
-            } else {
-                icon.className = 'fa-solid fa-volume-xmark text-xs text-slate-500';
-                showToast('সাউন্ড বন্ধ করা হয়েছে');
-            }
-        }
-
-        function updateDisplay() {
-            const expDisplay = document.getElementById('expressionDisplay');
-            const resDisplay = document.getElementById('mainResultDisplay');
-
-            // Format formula readable symbols for visual display
-            let friendlyExpression = currentExpression
-                .replace(/\*/g, ' × ')
-                .replace(/\//g, ' ÷ ')
-                .replace(/\+/g, ' + ')
-                .replace(/-/g, ' − ')
-                .replace(/Math\.sqrt\(/g, '√(')
-                .replace(/Math\.PI/g, 'π')
-                .replace(/Math\.E/g, 'e')
-                .replace(/\*\*/g, '^');
-
-            expDisplay.textContent = friendlyExpression || '0';
-            resDisplay.value = evaluatedResult || '0';
-
-            // Auto-scale font size if digits get large
-            const len = resDisplay.value.length;
-            if (len > 12) {
-                resDisplay.className = resDisplay.className.replace(/text-\S+/, 'text-2xl');
-            } else if (len > 8) {
-                resDisplay.className = resDisplay.className.replace(/text-\S+/, 'text-3xl');
-            } else {
-                resDisplay.className = resDisplay.className.replace(/text-\S+/, 'text-5xl');
-            }
-        }
-
-        function pressKey(key) {
-            playClickSound(550);
-            // Replace leading 0 if needed
-            if (currentExpression === '0' && !isNaN(key)) {
-                currentExpression = key;
-            } else {
-                currentExpression += key;
-            }
-            updateDisplay();
-        }
-
-        function pressOperator(op) {
-            playClickSound(700);
-            if (currentExpression === '' && evaluatedResult !== '0' && evaluatedResult !== 'ত্রুটি') {
-                currentExpression = evaluatedResult + op;
-            } else {
-                const lastChar = currentExpression.slice(-1);
-                if (['+', '-', '*', '/'].includes(lastChar)) {
-                    currentExpression = currentExpression.slice(0, -1) + op;
-                } else {
-                    currentExpression += op;
-                }
-            }
-            updateDisplay();
-        }
-
-        function pressFunc(fnName) {
-            playClickSound(850);
-            // Angle mode consideration for trigs
-            if (['sin', 'cos', 'tan'].includes(fnName)) {
-                if (isAngleDegree) {
-                    currentExpression += `Math.${fnName}((Math.PI/180)*`;
-                } else {
-                    currentExpression += `Math.${fnName}(`;
-                }
-            } else if (['asin', 'acos', 'atan'].includes(fnName)) {
-                if (isAngleDegree) {
-                    currentExpression += `((180/Math.PI)*Math.${fnName}(`;
-                } else {
-                    currentExpression += `Math.${fnName}(`;
-                }
-            } else {
-                currentExpression += `Math.${fnName}(`;
-            }
-            updateDisplay();
-        }
-
-        function toggleSign() {
-            playClickSound(600);
-            if (currentExpression !== '') {
-                if (currentExpression.startsWith('-')) {
-                    currentExpression = currentExpression.substring(1);
-                } else {
-                    currentExpression = '-' + currentExpression;
-                }
-            } else if (evaluatedResult !== '0' && evaluatedResult !== 'ত্রুটি') {
-                evaluatedResult = (parseFloat(evaluatedResult) * -1).toString();
-            }
-            updateDisplay();
-        }
-
-        function backspace() {
-            playClickSound(420);
-            if (currentExpression.length > 0) {
-                // Check if backspacing a Math function snippet
-                if (currentExpression.endsWith('Math.sqrt(')) {
-                    currentExpression = currentExpression.slice(0, -10);
-                } else if (currentExpression.endsWith('Math.PI') || currentExpression.endsWith('Math.E')) {
-                    currentExpression = currentExpression.slice(0, -7);
-                } else {
-                    currentExpression = currentExpression.slice(0, -1);
-                }
-            }
-            if (currentExpression === '') {
-                evaluatedResult = '0';
-            }
-            updateDisplay();
-        }
-
-        function clearAll() {
-            playClickSound(300, 'square');
-            currentExpression = '';
-            evaluatedResult = '0';
-            updateDisplay();
-        }
-
-        function sanitizeAndEval(code) {
-            // Check allowed mathematical tokens only
-            const sanitized = code.replace(/[^0-9+\-*/().%^eE\sMathPIsincoctalglg]/g, '');
-            // Auto close missing parentheses
-            let openParenCount = (sanitized.match(/\(/g) || []).length;
-            let closeParenCount = (sanitized.match(/\)/g) || []).length;
-            let balancedCode = sanitized;
-            while (openParenCount > closeParenCount) {
-                balancedCode += ')';
-                closeParenCount++;
-            }
-            // Safely evaluate math expression
-            return Function(`"use strict"; return (${balancedCode})`)();
-        }
-
-        function calculateResult() {
-            playClickSound(950, 'triangle');
-            if (!currentExpression && evaluatedResult !== '0') return;
-
-            try {
-                let expressionToSolve = currentExpression || evaluatedResult;
-                
-                // Parse percentage
-                expressionToSolve = expressionToSolve.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
-
-                let result = sanitizeAndEval(expressionToSolve);
-
-                if (result === undefined || isNaN(result)) {
-                    evaluatedResult = 'ত্রুটি';
-                } else if (!isFinite(result)) {
-                    evaluatedResult = 'অসীম (∞)';
-                } else {
-                    // Precision handling
-                    const rounded = Math.round(result * 100000000) / 100000000;
-                    evaluatedResult = rounded.toString();
-                    
-                    // Add to History
-                    saveToHistory(currentExpression, evaluatedResult);
-                }
-            } catch (err) {
-                evaluatedResult = 'ত্রুটি';
-            }
-            updateDisplay();
-        }
-
-        function factorial() {
-            playClickSound(750);
-            try {
-                let n = parseInt(evaluatedResult !== '0' ? evaluatedResult : currentExpression);
-                if (isNaN(n) || n < 0) {
-                    evaluatedResult = 'ত্রুটি';
-                } else if (n > 170) {
-                    evaluatedResult = 'অসীম (∞)';
-                } else {
-                    let fact = 1;
-                    for (let i = 2; i <= n; i++) fact *= i;
-                    currentExpression = `${n}!`;
-                    evaluatedResult = fact.toString();
-                    saveToHistory(`${n}!`, evaluatedResult);
-                }
-            } catch (e) {
-                evaluatedResult = 'ত্রুটি';
-            }
-            updateDisplay();
-        }
-
-        function saveToHistory(expr, ans) {
-            if (!expr || ans === 'ত্রুটি') return;
-            const item = {
-                id: Date.now(),
-                expression: expr,
-                result: ans,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            calculationHistory.unshift(item);
-            if (calculationHistory.length > 30) calculationHistory.pop();
-            renderHistory();
-
-            // Flash badge briefly
-            const badge = document.getElementById('historyBadge');
-            badge.classList.remove('hidden');
-            setTimeout(() => badge.classList.add('hidden'), 2000);
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('historyListContainer');
-            const emptyMsg = document.getElementById('emptyHistoryMsg');
-
-            if (calculationHistory.length === 0) {
-                list.innerHTML = '';
-                list.appendChild(emptyMsg);
-                return;
-            }
-
-            list.innerHTML = '';
-            calculationHistory.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'glass-btn p-3 rounded-2xl flex flex-col justify-between cursor-pointer hover:border-purple-500/40 transition group';
-                card.onclick = () => restoreHistoryItem(item.result);
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-center text-[10px] text-slate-400 pb-1">
-                        <span>${item.time}</span>
-                        <span class="text-purple-400 group-hover:underline">ব্যবহার করুন</span>
-                    </div>
-                    <div class="font-mono-math text-xs text-slate-300 truncate">${item.expression}</div>
-                    <div class="font-mono-math text-base font-bold text-emerald-400 text-right mt-1">= ${item.result}</div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function restoreHistoryItem(val) {
-            currentExpression = val;
-            evaluatedResult = val;
-            updateDisplay();
-            toggleHistoryDrawer();
-            showToast('হিসাব লোড করা হয়েছে');
-        }
-
-        function clearHistoryList() {
-            calculationHistory = [];
-            renderHistory();
-            showToast('হিস্ট্রি মুছে ফেলা হয়েছে');
-        }
-
-        function toggleHistoryDrawer() {
-            playClickSound(650);
-            const drawer = document.getElementById('historyDrawer');
-            drawer.classList.toggle('translate-y-full');
-        }
-
-        function toggleScientificPad() {
-            playClickSound(500);
-            isSciPadOpen = !isSciPadOpen;
-            const sciGrid = document.getElementById('scientificGrid');
-            const chevron = document.getElementById('sciChevron');
-
-            if (isSciPadOpen) {
-                sciGrid.classList.remove('hidden');
-                chevron.classList.add('rotate-180');
-            } else {
-                sciGrid.classList.add('hidden');
-                chevron.classList.remove('rotate-180');
-            }
-        }
-
-        function toggleAngleMode() {
-            playClickSound(750);
-            isAngleDegree = !isAngleDegree;
-            const badge = document.getElementById('angleModeBadge');
-            badge.textContent = isAngleDegree ? 'DEG' : 'RAD';
-            showToast(isAngleDegree ? 'ডিগ্রি মোড (DEG)' : 'রেডিয়ান মোড (RAD)');
-        }
-
-        function cycleTheme() {
-            playClickSound(800);
-            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-            const t = themes[currentThemeIndex];
-
-            // Update glow backgrounds
-            const g1 = document.getElementById('glowCircle1');
-            const g2 = document.getElementById('glowCircle2');
-            const eq = document.getElementById('equalBtn');
-
-            // Reset classes
-            g1.className = `absolute -top-24 -left-24 w-96 h-96 rounded-full blur-3xl animate-glow-1 ${t.glow1}`;
-            g2.className = `absolute -bottom-28 -right-24 w-96 h-96 rounded-full blur-3xl animate-glow-2 ${t.glow2}`;
-            eq.className = `btn-ripple h-14 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-xl hover:brightness-110 active:scale-95 transition ${t.btnEqual}`;
-
-            showToast(`থিম: ${t.name}`);
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toastMessage');
-            const txt = document.getElementById('toastText');
-            txt.textContent = msg;
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2000);
-        }
-
-        function copyToClipboard() {
-            const val = document.getElementById('mainResultDisplay').value;
-            const temp = document.createElement('textarea');
-            temp.value = val;
-            document.body.appendChild(temp);
-            temp.select();
-            try {
-                document.execCommand('copy');
-                showToast('ফলাফল কপি হয়েছে: ' + val);
-            } catch (err) {
-                showToast('কপি ব্যর্থ হয়েছে');
-            }
-            document.body.removeChild(temp);
-        }
-
-        /* Sync Real Phone Time, Battery Charge & Connectivity */
-        function initRealDeviceStatusBar() {
-            // 1. Live Phone Clock (12-hour format with real minutes)
-            function updateClock() {
-                const now = new Date();
-                let hours = now.getHours();
-                let minutes = now.getMinutes();
-                const displayHours = hours % 12 || 12;
-                const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-                const clockEl = document.getElementById('statusBarTime');
-                if (clockEl) {
-                    clockEl.textContent = `${displayHours}:${formattedMinutes}`;
-                }
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
-
-            // 2. Real Hardware Battery API (Supported natively on Android WebViews & Chrome)
-            if ('getBattery' in navigator) {
-                navigator.getBattery().then((battery) => {
-                    function updateBatteryStatus() {
-                        const levelPercent = Math.round(battery.level * 100);
-                        const isCharging = battery.charging;
-
-                        const levelEl = document.getElementById('statusBarBatteryLevel');
-                        const iconEl = document.getElementById('statusBarBatteryIcon');
-                        const dotEl = document.getElementById('deviceStateDot');
-
-                        if (levelEl) {
-                            levelEl.textContent = `${levelPercent}%`;
-                        }
-
-                        if (iconEl) {
-                            if (isCharging) {
-                                // Charger connected: Show lightning bolt animation
-                                iconEl.className = 'fa-solid fa-bolt text-amber-300 text-xs animate-pulse';
-                                if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-ping';
-                            } else {
-                                if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500/80 mr-1.5 animate-pulse';
-                                // Normal battery level states
-                                if (levelPercent > 85) {
-                                    iconEl.className = 'fa-solid fa-battery-full text-emerald-400 text-xs';
-                                } else if (levelPercent > 60) {
-                                    iconEl.className = 'fa-solid fa-battery-three-quarters text-emerald-400 text-xs';
-                                } else if (levelPercent > 35) {
-                                    iconEl.className = 'fa-solid fa-battery-half text-cyan-400 text-xs';
-                                } else if (levelPercent > 15) {
-                                    iconEl.className = 'fa-solid fa-battery-quarter text-amber-400 text-xs';
-                                } else {
-                                    iconEl.className = 'fa-solid fa-battery-empty text-rose-500 text-xs animate-pulse';
-                                }
-                            }
-                        }
-                    }
-
-                    // Initial sync and live event listeners for real charge change
-                    updateBatteryStatus();
-                    battery.addEventListener('levelchange', updateBatteryStatus);
-                    battery.addEventListener('chargingchange', updateBatteryStatus);
-                }).catch(() => {
-                    // Fallback for browsers with strict battery permissions
-                    const levelEl = document.getElementById('statusBarBatteryLevel');
-                    if (levelEl) levelEl.textContent = '100%';
-                });
-            } else {
-                // Default fallback if Battery API is unavailable
-                const levelEl = document.getElementById('statusBarBatteryLevel');
-                if (levelEl) levelEl.textContent = '100%';
-            }
-
-            // 3. Real Internet Connectivity Listener (WiFi vs Offline)
-            function updateNetworkStatus() {
-                const wifiIcon = document.getElementById('statusBarWifiIcon');
-                const signalIcon = document.getElementById('statusBarSignalIcon');
-                if (wifiIcon) {
-                    if (navigator.onLine) {
-                        wifiIcon.className = 'fa-solid fa-wifi text-[10px] text-cyan-400';
-                        if (signalIcon) signalIcon.className = 'fa-solid fa-signal text-[10px] text-slate-300';
-                    } else {
-                        wifiIcon.className = 'fa-solid fa-plane text-[10px] text-rose-400';
-                        if (signalIcon) signalIcon.className = 'fa-solid fa-signal text-[10px] text-slate-600';
-                    }
-                }
-            }
-            window.addEventListener('online', updateNetworkStatus);
-            window.addEventListener('offline', updateNetworkStatus);
-            updateNetworkStatus();
-        }
-
-        // Initialize device sensors and status bar on start
-        initRealDeviceStatusBar();
-
-        // Keyboard hotkeys support
-        window.addEventListener('keydown', (e) => {
-            if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
-                pressKey(e.key);
-            } else if (['+', '-', '*', '/'].includes(e.key)) {
-                pressOperator(e.key);
-            } else if (e.key === 'Enter' || e.key === '=') {
-                e.preventDefault();
-                calculateResult();
-            } else if (e.key === 'Backspace') {
-                backspace();
-            } else if (e.key === 'Escape') {
-                clearAll();
-            } else if (e.key === '(' || e.key === ')') {
-                pressKey(e.key);
-            } else if (e.key === '%') {
-                pressKey('%');
-            }
-        });
-    </script>
+      `).join("");
+    }
+
+    function useHistoryVal(val) {
+      currentInput = val.toString();
+      isEvaluated = true;
+      updateDisplay();
+      toggleHistory();
+    }
+  </script>
 </body>
 </html>
-```
