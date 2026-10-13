@@ -18,39 +18,37 @@ jobs:
         run: |
           mkdir -p app/src/main/assets app/src/main/res/values app/src/main/java/com/brokhan/calculator
           
-          # Copy HTML file
           if [ -f "index.html" ]; then
             cp index.html app/src/main/assets/index.html
           else
             cp my-android-app app/src/main/assets/index.html
           fi
 
-          # Settings Gradle
           cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
           rootProject.name = "Calculator"
           include ':app'
           EOF
 
-          # Root build.gradle
           cat << 'EOF' > build.gradle
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.4'
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
+          plugins {
+              id 'com.android.application' version '8.2.2' apply false
           }
           EOF
 
-          # App build.gradle
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
@@ -73,7 +71,6 @@ jobs:
           }
           EOF
 
-          # Manifest
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -81,8 +78,7 @@ jobs:
               <application
                   android:allowBackup="true"
                   android:label="Calculator"
-                  android:supportsRtl="true"
-                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                  android:supportsRtl="true">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -95,7 +91,6 @@ jobs:
           </manifest>
           EOF
 
-          # Java Code
           cat << 'EOF' > app/src/main/java/com/brokhan/calculator/MainActivity.java
           package com.brokhan.calculator;
 
@@ -119,10 +114,13 @@ jobs:
           }
           EOF
 
-          gradle wrapper --gradle-version 8.1.1
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2.1'
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
